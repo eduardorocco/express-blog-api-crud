@@ -1,9 +1,29 @@
 const posts = require('../data/posts.js');
-const { post } = require('../routers/postsRouter.js');
 
 ///INDEX///
 function index(req, res){
-    res.json(posts);
+    let FilteredPosts = posts;
+
+
+    if (req.query.tag) {
+        const tagQuery = req.query.tag.toLowerCase()
+        FilteredPosts = posts.filter((post) => {
+    
+            for (let i = 0; i < post.tags.length; i++) {
+                if (post.tags[i].toLowerCase() === tagQuery) {
+                    return true
+                }
+            }
+            return false
+        })
+    }
+
+    const limit = parseInt(req.query.limit)
+	if (limit && !isNaN(limit) && limit >= 0) {
+        FilteredPosts = FilteredPosts.slice(0, limit)
+    }
+
+    res.json(FilteredPosts)
 }
 
 ///SHOW///
@@ -13,9 +33,12 @@ function show(req, res){
 
     if (post){
         console.log(`Ecco il post con id: ${id}`);
-        res.json(post);
+        res.status(200).json(post)
     } else {
-        res.json({message: `Post con id: ${id} non trovato`});
+        res.status(404).json({
+            error: 'Post not found',
+            message: `Post con id: ${id} non trovato`
+        })
     }
 }
 
@@ -48,7 +71,7 @@ function destroy(req, res){
 
         return res.json({
             error: 'Post not found',
-            message: 'Post non trovato',
+            message: `Post con id: ${id} non trovato`
         })
     }
 

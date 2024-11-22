@@ -5,6 +5,8 @@ const postRouter = require('./routers/postsRouter.js');
 
 app.use(express.static('public'))
 
+app.use(express.json());
+
 app.use('/posts', postRouter)
 
 app.listen(port,() => {

@@ -2,8 +2,9 @@ const posts = require('../data/posts.js');
 
 ///INDEX///
 function index(req, res){
-    let FilteredPosts = posts;
 
+    ///TAG
+    let FilteredPosts = posts;
 
     if (req.query.tag) {
         const tagQuery = req.query.tag.toLowerCase()
@@ -18,7 +19,10 @@ function index(req, res){
         })
     }
 
+
+    ///LIMIT
     const limit = parseInt(req.query.limit)
+
 	if (limit && !isNaN(limit) && limit >= 0) {
         FilteredPosts = FilteredPosts.slice(0, limit)
     }
@@ -44,20 +48,87 @@ function show(req, res){
 
 ///STORE///
 function store(req, res){
-    res.send('Creo un nuovo post');
+    
+    const { title, content, tags } = req.body;
+
+    if (!title || !content || !tags || !Array.isArray(tags)) {
+        return res.status(400).json({
+            error: 'Missing data',
+        });
+    }
+
+    
+    const newPost = {
+        id: posts.length > 0 ? posts[posts.length - 1].id + 1 : 1, 
+        title: title,
+        content: content,
+        tags: tags.map(tag => tag.toLowerCase()) 
+    };
+
+    posts.push(newPost);
+
+    
+    res.status(201).json(newPost);
 }
 
 ///UPDATE///
-function update(req, res){
-    const id = req.params.id;
-    res.send(`Aggiorno il post con id: ${id}`);
+function update(req, res) {
+    const id = parseInt(req.params.id);
+    const { title, content, tags } = req.body
+
+    
+    if (!title || !content || !tags || !Array.isArray(tags)) {
+        return res.status(400).json({
+            error: 'Missing Data',
+        })
+    }
+
+    
+    const postIndex = posts.findIndex(post => post.id === id);
+
+    if (postIndex === -1) {
+        return res.status(404).json({
+            error: 'Post not found',
+            message: `Post con id: ${id} non trovato.`
+        })
+    }
+
+    
+    posts[postIndex] = {
+        id: posts[postIndex].id, 
+        title: title,
+        content: content,
+        tags: tags.map(tag => tag.toLowerCase()) 
+    }
+
+    res.status(200).json(posts[postIndex])
 }
 
+
 ///MODIFY///
-function modify(req, res){
-    const id = req.params.id;
-    res.send(`Modifico il post con id: ${id}`);
+function modify(req, res) {
+    const id = parseInt(req.params.id)
+    const { title, content, tags } = req.body
+
+    const postIndex = posts.findIndex(post => post.id === id);
+
+    if (postIndex === -1) {
+        return res.status(404).json({
+            error: 'Post not found',
+            message: `Post con id: ${id} non trovato.`
+        });
+    }
+
+    const updatedPost = posts[postIndex];
+
+    if (title) updatedPost.title = title;
+    if (content) updatedPost.content = content;
+    if (tags) updatedPost.tags = tags.map(tag => tag.toLowerCase())
+
+
+    res.status(200).json(updatedPost)
 }
+
 
 ///DESTROY///
 function destroy(req, res){

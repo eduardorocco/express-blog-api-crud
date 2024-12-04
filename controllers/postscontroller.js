@@ -109,7 +109,7 @@ function update(req, res) {
 function modify(req, res) {
     const id = parseInt(req.params.id)
     const { title, content, tags } = req.body
-
+                     
     const postIndex = posts.findIndex(post => post.id === id);
 
     if (postIndex === -1) {
